@@ -90,7 +90,7 @@ class Creature:
         self.drawCreature(icon,self.calmState,BEAT_FADE_TIME,transform,False,False)
         R = ICON_DIM[0]*0.09
         R2 = ICON_DIM[0]*0.12
-        pygame.draw.circle(icon,speciesToColor(self.species),(ICON_DIM[0]-R2,R2),R)
+        pygame.draw.circle(icon,speciesToColor(self.species, self.ui),(ICON_DIM[0]-R2,R2),R)
         return icon
         
     def saveCalmState(self, arr):
@@ -112,18 +112,14 @@ class Creature:
             big_mut_loc = (cell_x*self.sim.CH*self.sim.beats_per_cycle+cell_y*self.sim.beats_per_cycle+cell_beat)*self.sim.traits_per_box
             for i in range(self.sim.traits_per_box):
                 delta = 0
-                while abs(delta) < 0.5 or (i == 2 and result[big_mut_loc+i]+delta < 0.5):
+                while abs(delta) < 0.5:
                     delta = np.random.normal(0.0, 1.0, 1)
                 result[big_mut_loc+i] += delta
+                
+                #Cells that endure a big mutation are also required to be at least somewhat rigid, because if a cell goes from super-short to super-tall but has low rigidity the whole time, then it doesn't really matter.
+                if i == 2 and result[big_mut_loc+i] < 0.5:
+                    result[big_mut_loc+i] = 0.5
         
-        """biggest_mutation = np.amax(abs(mutation))
-        newSpecies = self.species
-        
-        if biggest_mutation >= 3.7: # big mutation happened, occurs roughly 1% of the time
-            location = np.argmax(abs(mutation))
-            result[location] = np.random.normal(0.0, 1.0, 1)
-            newSpecies = sim.species_count
-            sim.species_count += 1"""
         return result, newSpecies, big_mut_loc
         
     def traitsToColor(self, dna, x, y, frame):

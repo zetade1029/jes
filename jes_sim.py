@@ -2,7 +2,7 @@ import numpy as np
 from utils import getDistanceArray, applyMuscles
 from jes_creature import Creature
 from jes_species_info import SpeciesInfo
-from jes_dataviz import drawGraph, drawSAC, drawGeneGraph
+from jes_dataviz import drawAllGraphs
 import time
 import random
 
@@ -218,9 +218,7 @@ class Sim:
         self.percentiles = np.append(self.percentiles,newPercentiles.reshape((1,self.HUNDRED+1)),axis=0)
         self.species_pops.append(newSpeciesPops)
         
-        drawGraph(self.percentiles, self.ui.graph, [70,0,30,30], self.UNITS_PER_METER, self.ui.smallFont)
-        drawSAC(self.species_pops, self.ui.sac, [70,0])
-        drawGeneGraph(self.species_info, self.prominent_species, self.ui.gene_graph, self, self.ui, self.ui.tinyFont)
+        drawAllGraphs(self, self.ui)
         
         self.getCalmStates(gen+1,0,self.c_count,self.stabilization_time,True)
         #Calm the creatures down so no potential energy is stored
@@ -231,6 +229,9 @@ class Sim:
         self.ui.genSlider.val_max = gen+1
         self.ui.genSlider.manualUpdate(gen)
         self.last_gen_run_time = time.time()-generation_start_time
+        
+        self.ui.CLH = [None, None, None]
+        self.ui.detectMouseMotion()
         
     def getCreatureWithID(self, ID):
         return self.creatures[ID//self.c_count][ID%self.c_count]

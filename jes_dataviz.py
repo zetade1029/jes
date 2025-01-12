@@ -1,12 +1,17 @@
 import numpy as np
 from utils import getUnit, dist_to_text, species_to_name, speciesToColor
-from jes_shapes import centerText, rightText, alignText, drawArrow
+from jes_shapes import centerText, rightText, alignText, drawArrow, drawSpeciesCircle
 import math
 import pygame
 import random
 import bisect
 
-def drawGraph(data,graph,margins,u,font):
+def drawAllGraphs(sim, ui):
+    drawLineGraph(sim.percentiles, ui.graph, [70,0,30,30], sim.UNITS_PER_METER, ui.smallFont)
+    drawSAC(sim.species_pops, ui.sac, [70,0], ui)
+    drawGeneGraph(sim.species_info, sim.prominent_species, ui.gene_graph, sim, ui, ui.tinyFont)
+
+def drawLineGraph(data,graph,margins,u,font):
     BLACK = (0,0,0)
     GRAY25 = (70,70,70)
     GRAY50 = (128,128,128)
@@ -51,12 +56,12 @@ def drawGraph(data,graph,margins,u,font):
                 thickness = 3
             pygame.draw.line(graph, color, (x1, y1), (x2, y2), width=thickness)
             
-def drawSAC(data,sac,margins):
+def drawSAC(data,sac,margins,ui):
     sac.fill((0,0,0))
     for g in range(len(data)):
-        scanDownTrapezoids(data, g, sac, margins)
+        scanDownTrapezoids(data, g, sac, margins, ui)
         
-def scanDownTrapezoids(data, g, sac, margins):
+def scanDownTrapezoids(data, g, sac, margins, ui):
     W = sac.get_width()-margins[0]-margins[1]
     H = sac.get_height()
     LEN = len(data)
@@ -72,9 +77,9 @@ def scanDownTrapezoids(data, g, sac, margins):
         for sp in data[g].keys():
             pop = data[g][sp]
             points = [[x1,H/2],[x1,H/2],[x2,H-pop[1]*FAC],[x2,H-pop[2]*FAC]]
-            pygame.draw.polygon(sac,speciesToColor(sp),points)
+            pygame.draw.polygon(sac,speciesToColor(sp, ui),points)
     else:
-        trapezoidHelper(sac, data, g, g-1, 0, c_count, x1, x2, FAC, 0)
+        trapezoidHelper(sac, data, g, g-1, 0, c_count, x1, x2, FAC, 0, ui)
    
 def getRangeEvenIfNone(dicty, key):
     keys = sorted(list(dicty.keys()))
@@ -88,16 +93,16 @@ def getRangeEvenIfNone(dicty, key):
             val = dicty[keys[n]][1]
         return [0,val,val]
 
-def trapezoidHelper(sac, data, g1, g2, i_start, i_end, x1, x2, FAC, level):
+def trapezoidHelper(sac, data, g1, g2, i_start, i_end, x1, x2, FAC, level, ui):
     pop2 = [0,0,0]
     H = sac.get_height()
     for sp in data[g1].keys():
         pop1 = data[g1][sp]
         if level == 0 and pop1[1] != pop2[2]: #there was a gap
-            trapezoidHelper(sac, data, g2, g1, pop2[2], pop1[1], x2, x1, FAC, 1)
+            trapezoidHelper(sac, data, g2, g1, pop2[2], pop1[1], x2, x1, FAC, 1, ui)
         pop2 = getRangeEvenIfNone(data[g2],sp)
         points = [[x1,H-pop2[1]*FAC],[x1,H-pop2[2]*FAC],[x2,H-pop1[2]*FAC],[x2,H-pop1[1]*FAC]]
-        pygame.draw.polygon(sac,speciesToColor(sp),points)
+        pygame.draw.polygon(sac,speciesToColor(sp, ui),points)
         
 def drawGeneGraph(species_info, ps, gg, sim, ui, font):  # ps = prominent_species
     R = ui.GENEALOGY_COOR[4]
@@ -117,23 +122,9 @@ def drawGeneGraph(species_info, ps, gg, sim, ui, font):  # ps = prominent_specie
     for level in range(len(ps)):
         for i in range(len(ps[level])):
             s = ps[level][i]
-            color = speciesToColor(s)
-            info = species_info[s]
-            cx, cy = info.coor
-            pygame.draw.circle(gg,color,info.coor,R)
-            centerText(gg, species_to_name(s), cx, cy-22, (0,0,0), font)
-                
-            creature = sim.getCreatureWithID(info.reps[2])
-            tiny_icon = pygame.transform.scale(creature.icons[0], (50,50))
-            gg.blit(tiny_icon,(cx-25,cy-11))
-            
-            ancestorID = species_info[s].ancestorID
-            if ancestorID is None:
-                drawArrow(gg,(cx,-R*2),(cx,cy),R,R/2,color)
-            else:   
-                drawArrow(gg,species_info[ancestorID].coor,info.coor,R,R/2,color)
+            drawSpeciesCircle(gg,s,species_info[s].coor,R,sim,species_info,font,True,ui)
         
-def drawAllGraphs(screen, sim, ui):
+def displayAllGraphs(screen, sim, ui):
     WHITE = (255,255,255)
     blitGraphsandMarks(screen, sim, ui)
     blitGGandMarks(screen, sim, ui)
@@ -170,8 +161,8 @@ def blitGraphsandMarks(screen, sim, ui):
         if pop[0] >= sim.c_count*sim.S_VISIBLE:
             speciesI = (pop[1]+pop[2])/2
             speciesY = 560+300*(1-speciesI/sim.c_count)
-            name = species_to_name(sp)
-            color = speciesToColor(sp)
+            name = species_to_name(sp, ui)
+            color = speciesToColor(sp, ui)
             OUTLINE = ui.WHITE if sp == top_species else None
             alignText(screen, f"{name}: {pop[0]}", lineX+10, speciesY, color, ui.smallFont, 0.0, [ui.BLACK,OUTLINE])
         
@@ -192,13 +183,19 @@ def blitGGandMarks(screen, sim, ui):
         if not info.prominent:
             continue
         pop = sim.species_pops[a2][sp][0]
-        circle_count = 1
-        if sp == top_species:
-            circle_count += 1
+        circle_count = 2 if sp == top_species else 1
+        cx = info.coor[0]+ui.GENEALOGY_COOR[0]
+        cy = info.coor[1]+ui.GENEALOGY_COOR[1]
         for c in range(circle_count):
-            cx = info.coor[0]+ui.GENEALOGY_COOR[0]
-            cy = info.coor[1]+ui.GENEALOGY_COOR[1]
             pygame.draw.circle(screen, ui.WHITE, (cx,cy), R+3+6*c, 3)
+    
+    if ui.species_storage is not None:
+        sp = ui.species_storage
+        if sp in sim.species_pops[a2]:
+            circle_count = 2 if sp == top_species else 1
+            for c in range(circle_count):
+                pygame.draw.circle(screen, ui.WHITE, ui.storage_coor, R+3+6*c, 3)
+            
         
     
 

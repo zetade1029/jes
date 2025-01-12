@@ -1,7 +1,7 @@
 import pygame
 import math
 import copy
-from utils import lerp
+from utils import lerp, speciesToColor, species_to_name
 import numpy as np
 import time
 
@@ -113,3 +113,22 @@ def drawArrow(screen, _start, _end, margin, head, color):
         flare = [near_end[0]+math.cos(new_angle)*head, near_end[1]+math.sin(new_angle)*head]
         pygame.draw.line(screen, color, near_end, flare, width=2)
         
+def drawSpeciesCircle(screen, s, coor, R, sim, species_info, font, shouldDrawArrow, ui):
+    color = speciesToColor(s, ui)
+    name = species_to_name(s, ui)
+    info = species_info[s]
+    cx, cy = coor
+    
+    pygame.draw.circle(screen,color,coor,R)
+    centerText(screen, name, cx, cy-22, (0,0,0), font)
+        
+    creature = sim.getCreatureWithID(info.reps[2])
+    tiny_icon = pygame.transform.scale(creature.icons[0], (50,50))
+    screen.blit(tiny_icon,(cx-25,cy-11))
+    
+    if shouldDrawArrow:
+        ancestorID = species_info[s].ancestorID
+        if ancestorID is None:
+            drawArrow(screen,(cx,-R*2),(cx,cy),R,R/2,color)
+        else:   
+            drawArrow(screen,species_info[ancestorID].coor,info.coor,R,R/2,color)

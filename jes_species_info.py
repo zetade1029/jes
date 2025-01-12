@@ -1,5 +1,4 @@
 import numpy as np
-from utils import species_to_name
 from hashlib import sha256
 import math
 

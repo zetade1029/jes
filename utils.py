@@ -35,8 +35,9 @@ def hue_to_rgb(hue):
         r = (1,0.4-0.4*h,1-h)
     return (255*r[0], 200*r[1],255*r[2])
     
-def species_to_name(s):
-    _hex = sha256((str(s)+"salt").encode('utf-8')).hexdigest()
+def species_to_name(s, ui):
+    salted = str(s)+ui.salt
+    _hex = sha256(salted.encode('utf-8')).hexdigest()
     result = int(_hex, 16)
     length_choices = [5,6,6,7,7]
     length_choice = result%5
@@ -65,8 +66,11 @@ def brighten(color, b):
     else:
         return (color[0]*b, color[1]*b, color[2]*b)
     
-def speciesToColor(s):
-    _hex = sha256(str(s).encode('utf-8')).hexdigest()
+def speciesToColor(s, ui):
+    salted = str(s)+ui.salt
+    if s in ui.sc_colors:
+        salted = ui.sc_colors[s]+ui.salt
+    _hex = sha256(salted.encode('utf-8')).hexdigest()
     hue = (int(_hex, 16)%10000)/10000
     brightness = (math.floor(int(_hex, 16)//10000)%100)/100
     color = hue_to_rgb(hue)
