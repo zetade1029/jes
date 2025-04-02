@@ -123,6 +123,7 @@ class Sim:
         for f in range(frameCount):
             currentFrame = startCurrentFrame+f
             beat = 0
+            
             if not calmingRun:
                 beat = self.frameToBeat(currentFrame)
                 nodeCoor[:,:,:,3] += self.gravity_acceleration_coef
@@ -130,6 +131,7 @@ class Sim:
             applyMuscles(nodeCoor,muscles[:,:,:,beat,:],self.muscle_coef)
             nodeCoor[:,:,:,2:4] *= friction
             nodeCoor[:,:,:,0:2] += nodeCoor[:,:,:,2:4]    # all node's x and y coordinates are adjusted by velocity_x and velocity_y
+            
             if not calmingRun:    # dealing with collision with the ground.
                 nodesTouchingGround = np.ma.masked_where(nodeCoor[:,:,:,1] >= FLOOR_Y, nodeCoor[:,:,:,1])
                 m = nodesTouchingGround.mask.astype(float) # mask that only countains 1's where nodes touch the floor
@@ -230,7 +232,6 @@ class Sim:
         self.ui.genSlider.manualUpdate(gen)
         self.last_gen_run_time = time.time()-generation_start_time
         
-        self.ui.CLH = [None, None, None]
         self.ui.detectMouseMotion()
         
     def getCreatureWithID(self, ID):

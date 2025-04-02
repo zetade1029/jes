@@ -15,9 +15,9 @@ class UI:
         self.sliderList = []
         self.buttonList = []
         pygame.font.init()
-        self.bigFont = pygame.font.Font('./visuals/Arial.ttf', 60)
-        self.smallFont = pygame.font.Font('./visuals/Arial.ttf', 30)
-        self.tinyFont = pygame.font.Font('./visuals/Arial.ttf', 21)
+        self.bigFont = pygame.font.Font('C:/Users/caryk/AppData/Local/Microsoft/Windows/Fonts/Jygquip 1.ttf', 60)
+        self.smallFont = pygame.font.Font('C:/Users/caryk/AppData/Local/Microsoft/Windows/Fonts/Jygquip 1.ttf', 30)
+        self.tinyFont = pygame.font.Font('C:/Users/caryk/AppData/Local/Microsoft/Windows/Fonts/Jygquip 1.ttf', 21)
         self.BACKGROUND_PIC = pygame.image.load("visuals/background.png")
         self.W_W = _W_W
         self.W_H = _W_H
@@ -140,7 +140,7 @@ class UI:
             # rolling over storage
             if self.species_storage is not None and getDist(mouseX,mouseY,self.storage_coor[0],self.storage_coor[1]) <= self.GENEALOGY_COOR[4]:
                 newCLH = [2, self.species_storage]
-                       
+        
         if newCLH[1] != self.CLH[1]:
             self.CLH = newCLH
             if self.CLH[1] is None:

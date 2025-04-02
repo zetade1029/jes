@@ -39,7 +39,7 @@ def species_to_name(s, ui):
     salted = str(s)+ui.salt
     _hex = sha256(salted.encode('utf-8')).hexdigest()
     result = int(_hex, 16)
-    length_choices = [5,6,6,7,7]
+    length_choices = [5,5,6,6,7]
     length_choice = result%5
     result = result//5
     
