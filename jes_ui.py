@@ -21,7 +21,7 @@ class UI:
             font = './visuals/Arial.ttf' # fits a bit better than the old typeface
         self.bigFont = pygame.font.Font(font, 55)
         self.smallFont = pygame.font.Font(font, 25)
-        self.tinyFont = pygame.font.Font(font, 21)
+        self.tinyFont = pygame.font.Font(font, 17)
         self.BACKGROUND_PIC = pygame.image.load("visuals/background.png")
         self.W_W = _W_W
         self.W_H = _W_H
