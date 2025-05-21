@@ -19,7 +19,7 @@ class UI:
         font = f'{appdata}/Local/Microsoft/Windows/Fonts/Jygquip 1.ttf'  # If a user has the custom font installed, it will now work!
         if not os.path.isfile(font):
             font = './visuals/Arial.ttf' # fits a bit better than the old typeface
-        self.bigFont = pygame.font.Font(font, 60)
+        self.bigFont = pygame.font.Font(font, 55)
         self.smallFont = pygame.font.Font(font, 30)
         self.tinyFont = pygame.font.Font(font, 21)
         self.BACKGROUND_PIC = pygame.image.load("visuals/background.png")
